@@ -73,13 +73,7 @@ E-TİCARET/
 ## 🕒 Zamanlama
 
 - Airflow DAG’i yerel saatle **15:30**'da çalışacak şekilde ayarlanmıştır.
-- UTC karşılığı Airflow DAG’inde otomatik olarak hesaplanır:
-  ```python
-  local_hour = 15
-  local_minute = 30
-  utc_hour = (local_hour - 3) % 24
-  schedule = f'{local_minute} {utc_hour} * * *'
-  ```
+- UTC+3
 
 ## 🛠️ Kurulum ve Çalıştırma
 
