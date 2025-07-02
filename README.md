@@ -1,2 +1,127 @@
-# Mini E-Ticaret ve Veri İşleme Platformu
-Bu proje, basit bir e-ticaret sistemi ile Kafka, Airflow ve Docker teknolojilerini entegre ederek uçtan uca bir veri işleme pipeline'ı sunar. Kullanıcıların web arayüzü üzerinden ürün satın alma işlemleri Kafka ile kuyruğa alınır. Ardından, Airflow tarafından günlük olarak işlenerek CSV formatında raporlanır.
+
+# 💼 Mini E-Ticaret + Kafka + Airflow Projesi
+
+Bu proje, küçük bir e-ticaret web uygulaması üzerinden yapılan satışları Kafka ile mesaj kuyruğuna gönderir ve Airflow ile her gün saat **15:30**'da bu satışları CSV formatında işler.
+
+## 🔧 Proje Bileşenleri
+
+### 1. `app/` – Flask Web Uygulaması
+
+- Basit bir ürün listesi görüntülenir.
+- "Satın Al" butonuna tıklandığında Kafka'ya satış mesajı gönderilir.
+- Flask uygulaması port **5000**'de çalışır.
+
+### 2. `airflow/` – Apache Airflow
+
+- `dags/process_sales_dag.py`: Kafka’dan verileri okuyup `/opt/airflow/data/sales` dizinine CSV olarak yazan DAG.
+- Bu DAG her gün **15:30 yerel saat**'te tetiklenir.
+
+### 3. `kafka/` – Apache Kafka & Zookeeper
+
+- `sales_topic` adında bir topic vardır.
+- Flask uygulaması satışları buraya üretir.
+- Airflow, bu topic'ten satış verilerini tüketir.
+
+## 📦 Docker Servisleri (`docker-compose.yml`)
+
+| Servis              | Açıklama                                                         |
+|---------------------|------------------------------------------------------------------|
+| `web`               | Flask uygulamasını barındırır.                                   |
+| `zookeeper`         | Kafka için gerekli servis.                                       |
+| `kafka`             | Kafka broker.                                                    |
+| `kafka-ui`          | Kafka topiclerini ve mesajları görüntülemek için web arayüzü.    |
+| `postgres`          | Airflow için metadata veritabanı.                                |
+| `redis`             | Celery için mesaj kuyruğu.                                       |
+| `airflow-init`      | Airflow veritabanını başlatır ve admin kullanıcı oluşturur.      |
+| `airflow-webserver` | Airflow arayüzü.                                                 |
+| `airflow-scheduler` | DAG’leri tetikleyen servis.                                      |
+| `airflow-worker`    | Airflow görevlerini çalıştırır.                                  |
+
+## 📁 Proje Klasör Yapısı
+
+```
+.
+E-TİCARET/
+
+├── airflow/                  # Airflow için Dockerfile veya config dosyaları
+│   └── Dockerfile            # Airflow image'ını özelleştirmek için kullanılır
+│
+├── app/                      # Flask web uygulaması
+│   ├── templates/            # HTML şablonları
+│   │   └── index.html        # Ürün listeleme ve satın alma sayfası
+│   ├── app.py                # Flask uygulamasının giriş noktası
+│   └── Dockerfile            # Flask uygulamasını container içinde çalıştırmak için Dockerfile
+│
+├── dags/                     # Airflow DAG dosyaları
+│   └── process_sales_dag.py  # Günlük satış verilerini Kafka'dan okuyup CSV'ye yazan DAG
+│
+├── data/                     # Uygulamanın işlediği verilerin bulunduğu klasör
+│   └── sales/                # Günlük satış verilerinin CSV dosyaları buraya yazılır
+│
+├── kafka/                    # Kafka producer/consumer scriptleri
+│   ├── producer.py           # Ürün satın alındığında Kafka’ya mesaj yollayan script
+│   └── consumer.py           # Kafka’dan veri okumak için kullanılabilir
+│
+├── logs/                     # Airflow log dosyaları
+│
+├── plugins/                  # (Opsiyonel) Airflow özel plugin’leri için klasör
+│
+├── docker-compose.yaml       # Tüm servisleri tanımlayan Docker Compose konfigürasyonu
+
+```
+
+## 🕒 Zamanlama
+
+- Airflow DAG’i yerel saatle **15:30**'da çalışacak şekilde ayarlanmıştır.
+- UTC karşılığı Airflow DAG’inde otomatik olarak hesaplanır:
+  ```python
+  local_hour = 15
+  local_minute = 30
+  utc_hour = (local_hour - 3) % 24
+  schedule = f'{local_minute} {utc_hour} * * *'
+  ```
+
+## 🛠️ Kurulum ve Çalıştırma
+
+1. Proje dizinine gidin:
+   ```bash
+   cd -projedizini-
+   ```
+
+2. Gerekli Docker imajlarını oluşturun:
+   ```bash
+   docker-compose build
+   ```
+
+3. Servisleri başlatın:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. Uygulamalara erişin:
+
+   - Flask: [http://localhost:5000](http://localhost:5000)  
+   - Kafka UI: [http://localhost:8080](http://localhost:8080)  
+   - Airflow UI: [http://localhost:8081](http://localhost:8081)  
+
+## 📄 CSV Dosyasına Erişim
+
+CSV dosyası Airflow worker konteynerinde `/opt/airflow/data/sales` klasörüne kaydedilir. Dosyayı host makinenize almak için:
+
+```bash
+docker cp airflow_worker:/opt/airflow/data/sales/daily_sales_YYYY-MM-DD.csv ./data/sales/
+```
+
+> **Not:** Eğer `./data/sales` klasörünüzde CSV görünmüyorsa, `airflow-worker` servisine şu volume'ü eklediğinizden emin olun:
+
+```yaml
+volumes:
+  - ./data/sales:/opt/airflow/data/sales
+```
+
+Bu değişiklik sonrası sistemi şu şekilde yeniden başlatabilirsiniz:
+
+```bash
+docker-compose down -v
+docker-compose up --build -d
+```
