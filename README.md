@@ -95,7 +95,25 @@ E-TİCARET/
 
    - Flask: [http://localhost:5000](http://localhost:5000)  
    - Kafka UI: [http://localhost:8080](http://localhost:8080)  
-   - Airflow UI: [http://localhost:8081](http://localhost:8081)  
+   - Airflow UI: [http://localhost:8081](http://localhost:8081)
+  
+5. 🔐 Airflow FERNET_KEY Nedir?
+Airflow, bağlantı bilgileri gibi hassas verileri veri tabanında şifreleyerek saklar. Bu işlemi yapabilmek için FERNET şifreleme anahtarına ihtiyaç duyar.
+
+Yani, FERNET_KEY, Airflow'un güvenlik için kullandığı şifreleme/deşifreleme anahtarıdır.
+
+🔑 Nasıl Oluşturulur?
+Yeni bir FERNET_KEY üretmek için aşağıdaki Python komutunu terminalde çalıştırabilirsiniz:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+Elde edilen bu anahtar, docker-compose.yml dosyasındaki tüm Airflow servislerinin environment kısmına şu şekilde yazılmalıdır:
+
+```bash
+AIRFLOW__CORE__FERNET_KEY: '***'
+```
+❗ Not: FERNET anahtarı tüm servislerde aynı olmalıdır (webserver, scheduler, worker), aksi halde Airflow şifrelenmiş verileri okuyamaz ve hata alırsınız.
 
 ## 📄 CSV Dosyasına Erişim
 
