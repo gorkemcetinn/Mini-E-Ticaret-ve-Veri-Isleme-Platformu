@@ -40,7 +40,6 @@ Bu proje, küçük bir e-ticaret web uygulaması üzerinden yapılan satışlar�
 ## 📁 Proje Klasör Yapısı
 
 ```
-.
 E-TİCARET/
 
 ├── airflow/                  # Airflow için Dockerfile veya config dosyaları
