@@ -136,3 +136,10 @@ Bu değişiklik sonrası sistemi şu şekilde yeniden başlatabilirsiniz:
 docker-compose down -v
 docker-compose up --build -d
 ```
+## 📸 Proje Görselleri
+
+
+![web](https://github.com/user-attachments/assets/b79f853d-e5c4-4faa-92c7-c85f064ad3b2)
+![realairflow](https://github.com/user-attachments/assets/e957c14e-5cb2-4345-ac95-e86e3ba068e7)
+![kafka](https://github.com/user-attachments/assets/4f4d6a89-2636-4429-8a4e-a8496b67e17a)
+
