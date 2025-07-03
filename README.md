@@ -1,5 +1,5 @@
 
-# 💼 Mini E-Ticaret + Kafka + Airflow Projesi
+# 💼 Mini E-Ticaret Projesi
 
 Bu proje, küçük bir e-ticaret web uygulaması üzerinden yapılan satışları Kafka ile mesaj kuyruğuna gönderir ve Airflow ile her gün saat **15:30**'da bu satışları CSV formatında işler.
 
